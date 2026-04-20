@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher Dashboard — Smart Attendance Tracker</title>
+  <meta name="description" content="Teacher panel — start OTP sessions, manage attendance, view reports and defaulters.">
+  <link rel="stylesheet" href="../assets/css/common.css">
+  <link rel="stylesheet" href="../assets/css/teacher.css">
+</head>
+<body>
+  <main class="app">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-brand"><span>Smart</span> Attendance</div>
+      <div class="navbar-user">
+        <span>Welcome, <strong id="teacherName">Teacher</strong></span>
+        <span class="pill" id="teacherCode" style="background:var(--gray-500);">--</span>
+        <button class="btn btn-sm btn-outline" onclick="openModal('settingsModal')">⚙️</button>
+        <button class="btn btn-sm btn-danger" onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="top-panel">
+      <div>
+        <p class="eyebrow">Teacher Panel</p>
+        <h1>Attendance Manager</h1>
+        <p class="intro">Start attendance sessions, manage students, and track subject statistics.</p>
+      </div>
+      <div class="date-box">
+        <span id="currentDay">--</span>
+        <strong id="currentDate">--</strong>
+      </div>
+    </section>
+
+    <!-- Active OTP Session Card -->
+    <section class="otp-section" id="otpSection" style="display:none;">
+      <article class="otp-card card">
+        <div class="otp-display">
+          <p class="eyebrow">Active Session — <span id="otpSubjectName">--</span></p>
+          <div class="otp-code" id="otpCodeDisplay">----</div>
+          <div class="otp-timer">
+            <div class="otp-timer-ring" id="otpTimerRing"></div>
+            <span id="otpTimerText">60s remaining</span>
+          </div>
+          <p style="color:var(--gray-500); margin: 12px 0 0;">Share this OTP with students. Sem <span id="otpSemLabel">-</span>, Section <span id="otpSecLabel">-</span></p>
+          <div style="margin-top:18px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+            <button class="btn btn-danger" onclick="endCurrentSession()">End Session</button>
+            <button class="btn btn-outline" onclick="refreshSessionStudents()">Refresh List</button>
+          </div>
+        </div>
+
+        <!-- Students marked list -->
+        <div class="session-students">
+          <div class="session-students-head">
+            <strong>🟢 Present (<span id="markedCount">0</span>)</strong>
+            <strong style="color:var(--red);">🔴 Absent (<span id="absentCount">0</span>)</strong>
+          </div>
+          <div class="session-students-lists">
+            <div id="markedStudentsList" class="student-col"></div>
+            <div id="absentStudentsList" class="student-col"></div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Start Session -->
+    <section class="start-section" id="startSection">
+      <article class="card" style="padding: 24px;">
+        <h2>Start Attendance Session</h2>
+        <div class="start-form">
+          <div class="form-group">
+            <label class="form-label" for="subjectSelect">Subject</label>
+            <select class="form-select" id="subjectSelect">
+              <option value="">Select subject...</option>
+            </select>
+          </div>
+          <button class="btn btn-primary btn-block" onclick="startSession()" id="startBtn">
+            ▶ Start Session & Generate OTP
+          </button>
+        </div>
+      </article>
+    </section>
+
+    <!-- Tab navigation -->
+    <div class="tabs" id="mainTabs">
+      <button class="tab active" data-tab="recentTab">Recent Sessions</button>
+      <button class="tab" data-tab="reportsTab">Reports</button>
+      <button class="tab" data-tab="defaultersTab">Defaulters</button>
+      <button class="tab" data-tab="noticesTab">Notices</button>
+    </div>
+
+    <!-- Recent Sessions Tab -->
+    <div class="tab-content active" id="recentTab">
+      <div class="card" style="padding:20px;">
+        <h2>Recent Sessions</h2>
+        <div class="table-wrap">
+          <table class="data-table" id="recentTable">
+            <thead>
+              <tr><th>Subject</th><th>Semester</th><th>Section</th><th>Date</th><th>Students</th><th>Status</th></tr>
+            </thead>
+            <tbody id="recentBody">
+              <tr><td colspan="6" style="text-align:center; color:var(--gray-500);">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Reports Tab -->
+    <div class="tab-content" id="reportsTab">
+      <div class="card" style="padding:20px;">
+        <h2>Attendance Report</h2>
+        <div style="display:flex; gap:12px; margin-bottom:16px; flex-wrap:wrap; align-items:end;">
+          <div class="form-group" style="margin:0;">
+            <label class="form-label">Subject</label>
+            <select class="form-select" id="reportSubject" style="min-width:200px;"></select>
+          </div>
+          <button class="btn btn-primary" onclick="loadReport()">Load Report</button>
+          <button class="btn btn-outline" onclick="downloadCSV()">⬇ Download CSV</button>
+        </div>
+
+        <div class="table-wrap">
+          <table class="data-table" id="reportTable">
+            <thead>
+              <tr><th>Roll No</th><th>Name</th><th>Present</th><th>Total</th><th>%</th><th>Status</th></tr>
+            </thead>
+            <tbody id="reportBody">
+              <tr><td colspan="6" style="text-align:center; color:var(--gray-500);">Select a subject above</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Defaulters Tab -->
+    <div class="tab-content" id="defaultersTab">
+      <div class="card" style="padding:20px;">
+        <h2>Defaulters (Below 75%)</h2>
+        <div class="table-wrap">
+          <table class="data-table">
+            <thead>
+              <tr><th>Roll No</th><th>Name</th><th>Subject</th><th>Present</th><th>Total</th><th>%</th></tr>
+            </thead>
+            <tbody id="defaultersBody">
+              <tr><td colspan="6" style="text-align:center; color:var(--gray-500);">Loading...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Notices Tab -->
+    <div class="tab-content" id="noticesTab">
+      <div class="card" style="padding:20px;">
+        <h2>Notices</h2>
+
+        <div style="display:grid; gap:12px; margin-bottom:20px; padding:16px; background:var(--gray-50); border-radius:var(--radius); border:1px solid var(--gray-200);">
+          <h3 style="margin:0; font-size:1rem;">Create Notice</h3>
+          <div class="form-group" style="margin:0;">
+            <input class="form-input" type="text" id="noticeTitle" placeholder="Notice title...">
+          </div>
+          <div class="form-group" style="margin:0;">
+            <textarea class="form-input" id="noticeMessage" rows="3" placeholder="Notice message..." style="padding:12px; min-height:80px; resize:vertical;"></textarea>
+          </div>
+          <button class="btn btn-primary" onclick="createNotice()" style="justify-self:start;">Send Notice</button>
+        </div>
+
+        <div id="noticesList"></div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal" style="position:relative;">
+      <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+      <h2 class="modal-title">Settings</h2>
+      <h3 style="font-size:1rem; margin-bottom:12px;">Change Password</h3>
+      <div class="form-group">
+        <label class="form-label" for="currentPass">Current Password</label>
+        <input class="form-input" type="password" id="currentPass">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="newPass">New Password</label>
+        <input class="form-input" type="password" id="newPass">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="changePassword()">Update Password</button>
+    </div>
+  </div>
+
+  <!-- Edit Past Session Modal -->
+  <div class="modal-overlay" id="editSessionModal">
+    <div class="modal" style="position:relative; max-width:600px;">
+      <button class="modal-close" onclick="closeModal('editSessionModal')">✕</button>
+      <h2 class="modal-title">Edit Session Attendance</h2>
+      <p style="color:var(--gray-500); font-size:0.85rem; margin-bottom:16px;">Manually mark students who missed the session.</p>
+      
+      <div class="session-students">
+        <div class="session-students-head">
+          <strong>🟢 Present (<span id="editMarkedCount">0</span>)</strong>
+          <strong style="color:var(--red);">🔴 Absent (<span id="editAbsentCount">0</span>)</strong>
+        </div>
+        <div class="session-students-lists">
+          <div id="editMarkedList" class="student-col" style="max-height: 50vh; overflow-y: auto;"></div>
+          <div id="editAbsentList" class="student-col" style="max-height: 50vh; overflow-y: auto;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/teacher.js"></script>
+</body>
+</html>

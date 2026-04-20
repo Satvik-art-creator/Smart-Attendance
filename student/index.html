@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Dashboard — Smart Attendance Tracker</title>
+  <meta name="description" content="Student attendance dashboard — view stats, mark OTP attendance, check timetable and subject reports.">
+  <link rel="stylesheet" href="../assets/css/common.css">
+  <link rel="stylesheet" href="../assets/css/student.css">
+</head>
+<body>
+  <main class="app">
+
+    <!-- Navbar -->
+    <nav class="navbar">
+      <div class="navbar-brand"><span>Smart</span> Attendance</div>
+      <div class="navbar-user">
+        <span>Welcome, <strong id="studentName">Student</strong></span>
+        <span class="pill" id="sectionBadge">--</span>
+        <button class="btn btn-sm btn-outline" onclick="openModal('settingsModal')">⚙️</button>
+        <button class="btn btn-sm btn-danger" onclick="logout()">Logout</button>
+      </div>
+    </nav>
+
+    <!-- Hero (preserved design) -->
+    <section class="top-panel">
+      <div>
+        <p class="eyebrow" id="sectionLabel">Semester 2 • Section A1</p>
+        <h1>Smart Attendance Tracker</h1>
+        <p class="intro">Mark today, check every subject, and stay above the 75% attendance rule.</p>
+      </div>
+      <div class="date-box">
+        <span id="currentDay">Monday</span>
+        <strong id="currentDate">Today</strong>
+      </div>
+    </section>
+
+    <!-- Active Session Alert -->
+    <div class="active-session-bar" id="activeSessionBar" style="display:none;">
+      <div class="session-alert">
+        <div class="session-alert-left">
+          <span class="pill pill-active">LIVE</span>
+          <strong id="activeSubjectName">--</strong>
+          <span id="activeTeacherName">by --</span>
+        </div>
+        <div class="session-alert-right">
+          <span class="otp-timer" id="sessionCountdown">60s</span>
+          <button class="btn btn-primary btn-sm" onclick="openOTPModal()" id="markOtpBtn">Mark Attendance</button>
+          <span class="pill pill-safe" id="alreadyMarkedBadge" style="display:none;">✓ Marked</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary Cards (preserved design) -->
+    <section class="summary-grid" aria-label="Attendance summary">
+      <article class="summary-card safe">
+        <span>Total Attendance</span>
+        <strong id="overallPercent">0%</strong>
+        <p id="overallMessage">Loading...</p>
+      </article>
+
+      <article class="summary-card">
+        <span>Present / Total</span>
+        <strong id="overallCount">0 / 0</strong>
+        <p>All marked classes combined.</p>
+      </article>
+
+      <article class="summary-card">
+        <span>Subjects Below 75%</span>
+        <strong id="needCount">0</strong>
+        <p id="needMessage">Every subject is safe.</p>
+      </article>
+    </section>
+
+    <!-- Tracker Layout (preserved) -->
+    <section class="tracker-layout">
+
+      <!-- Left: Today's Classes (redesigned for OTP) -->
+      <aside class="control-panel">
+        <h2>Today's Classes</h2>
+        <div class="class-list" id="classList">
+          <p class="empty-note">Loading classes...</p>
+        </div>
+      </aside>
+
+      <!-- Right: Timetable + Insights + Calendar (preserved) -->
+      <section class="table-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Weekly view</p>
+            <h2>Time Table</h2>
+          </div>
+          <span class="criteria-pill">75% criteria</span>
+        </div>
+
+        <div class="table-wrap">
+          <table id="timeTable"></table>
+        </div>
+
+        <div class="insight-panel">
+          <article class="insight-card">
+            <span>Priority Subject</span>
+            <strong id="prioritySubject">Loading...</strong>
+            <p id="priorityMessage">The weakest subject will appear here.</p>
+          </article>
+
+          <article class="insight-card">
+            <span>Best Subject</span>
+            <strong id="bestSubject">Loading...</strong>
+            <p id="bestMessage">Your strongest subject will appear here.</p>
+          </article>
+
+          <article class="insight-card">
+            <span>Rule Reminder</span>
+            <strong>75% per subject</strong>
+            <p>Overall attendance is helpful, but every subject must stay at 75% or above.</p>
+          </article>
+        </div>
+
+        <div class="calendar-panel">
+          <div class="calendar-head">
+            <button id="prevMonth" type="button">Prev</button>
+            <strong id="monthTitle">Month</strong>
+            <button id="nextMonth" type="button">Next</button>
+          </div>
+
+          <div class="calendar-week">
+            <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span>
+          </div>
+
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+      </section>
+    </section>
+
+    <!-- Subject Report Cards (preserved) -->
+    <section class="subject-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Subject report</p>
+          <h2>Attendance By Subject</h2>
+        </div>
+      </div>
+      <div class="subject-grid" id="subjectGrid"></div>
+    </section>
+
+    <!-- Notices Section -->
+    <section class="notices-panel" id="noticesPanel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Announcements</p>
+          <h2>Notices</h2>
+        </div>
+      </div>
+      <div class="notices-list" id="noticesList"></div>
+    </section>
+
+  </main>
+
+  <!-- OTP Modal -->
+  <div class="modal-overlay" id="otpModal">
+    <div class="modal" style="position:relative;">
+      <button class="modal-close" onclick="closeModal('otpModal')">✕</button>
+      <h2 class="modal-title">Enter OTP Code</h2>
+      <p style="color:var(--gray-500); margin-bottom:18px;">Enter the 4-digit OTP shared by your teacher.</p>
+
+      <div class="otp-input-wrap">
+        <input type="text" id="otpInput" class="otp-big-input" maxlength="4" pattern="[0-9]*" inputmode="numeric" placeholder="• • • •" autocomplete="off">
+      </div>
+
+      <input type="hidden" id="otpSessionId">
+
+      <div id="otpError" class="login-error" style="margin-top:12px;"></div>
+
+      <button class="btn btn-primary btn-block" style="margin-top:16px;" onclick="submitOTP()" id="otpSubmitBtn">
+        Submit Attendance
+      </button>
+    </div>
+  </div>
+
+  <!-- Settings Modal -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal" style="position:relative;">
+      <button class="modal-close" onclick="closeModal('settingsModal')">✕</button>
+      <h2 class="modal-title">Settings</h2>
+
+      <h3 style="font-size:1rem; margin-bottom:12px;">Change Password</h3>
+      <div class="form-group">
+        <label class="form-label" for="currentPass">Current Password</label>
+        <input class="form-input" type="password" id="currentPass">
+      </div>
+      <div class="form-group">
+        <label class="form-label" for="newPass">New Password</label>
+        <input class="form-input" type="password" id="newPass">
+      </div>
+      <button class="btn btn-primary btn-block" onclick="changePassword()">Update Password</button>
+    </div>
+  </div>
+
+  <button class="theme-toggle" id="themeToggle" onclick="toggleTheme()" aria-label="Toggle dark mode">🌙</button>
+
+  <script src="../assets/js/common.js"></script>
+  <script src="../assets/js/student.js"></script>
+</body>
+</html>

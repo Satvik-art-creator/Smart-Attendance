@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Smart Attendance Tracker</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="app">
+    <section class="top-panel">
+      <div>
+        <p class="eyebrow">Hall 2 timetable</p>
+        <h1>Smart Attendance Tracker</h1>
+        <p class="intro">Mark today, check every subject, and stay above the 75% attendance rule.</p>
+      </div>
+
+      <div class="date-box">
+        <span id="currentDay">Monday</span>
+        <strong id="currentDate">Today</strong>
+      </div>
+    </section>
+
+    <section class="summary-grid" aria-label="Attendance summary">
+      <article class="summary-card safe">
+        <span>Total Attendance</span>
+        <strong id="overallPercent">0%</strong>
+        <p id="overallMessage">Start marking classes.</p>
+      </article>
+
+      <article class="summary-card">
+        <span>Present / Total</span>
+        <strong id="overallCount">0 / 0</strong>
+        <p>All marked classes combined.</p>
+      </article>
+
+      <article class="summary-card">
+        <span>Subjects Below 75%</span>
+        <strong id="needCount">0</strong>
+        <p id="needMessage">Every subject is safe.</p>
+      </article>
+    </section>
+
+    <section class="tracker-layout">
+      <aside class="control-panel">
+        <h2>Mark Attendance</h2>
+
+        <label for="datePicker">Choose date</label>
+        <input type="date" id="datePicker">
+
+        <label for="daySelect">Choose day</label>
+        <select id="daySelect" disabled></select>
+
+        <div class="class-list" id="classList"></div>
+
+        <button class="reset-btn" id="resetBtn" type="button">Reset All Data</button>
+      </aside>
+
+      <section class="table-panel">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Weekly view</p>
+            <h2>Time Table</h2>
+          </div>
+          <span class="criteria-pill">75% criteria</span>
+        </div>
+
+        <div class="table-wrap">
+          <table id="timeTable"></table>
+        </div>
+
+        <div class="insight-panel">
+          <article class="insight-card">
+            <span>Priority Subject</span>
+            <strong id="prioritySubject">Start marking</strong>
+            <p id="priorityMessage">The weakest subject will appear here.</p>
+          </article>
+
+          <article class="insight-card">
+            <span>Best Subject</span>
+            <strong id="bestSubject">Start marking</strong>
+            <p id="bestMessage">Your strongest subject will appear here.</p>
+          </article>
+
+          <article class="insight-card">
+            <span>Rule Reminder</span>
+            <strong>75% per subject</strong>
+            <p>Overall attendance is helpful, but every subject must stay at 75% or above.</p>
+          </article>
+        </div>
+
+        <div class="calendar-panel">
+          <div class="calendar-head">
+            <button id="prevMonth" type="button">Prev</button>
+            <strong id="monthTitle">Month</strong>
+            <button id="nextMonth" type="button">Next</button>
+          </div>
+
+          <div class="calendar-week">
+            <span>Sun</span>
+            <span>Mon</span>
+            <span>Tue</span>
+            <span>Wed</span>
+            <span>Thu</span>
+            <span>Fri</span>
+            <span>Sat</span>
+          </div>
+
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="subject-panel">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">Subject report</p>
+          <h2>Attendance By Subject</h2>
+        </div>
+      </div>
+
+      <div class="subject-grid" id="subjectGrid"></div>
+    </section>
+  </main>
+
+  <script src="script.js"></script>
+</body>
+</html>
